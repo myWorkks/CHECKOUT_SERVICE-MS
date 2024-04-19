@@ -5,8 +5,8 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ShippingAddressViewResponse {
-	private Long shippingAddressId;
+public class BillingAddressViewResponse {
+	private Long billingAddressId;
 
 	private String firstName;
 

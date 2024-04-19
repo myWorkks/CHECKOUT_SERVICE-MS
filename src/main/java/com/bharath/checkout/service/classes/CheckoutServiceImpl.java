@@ -14,6 +14,7 @@ import com.bharath.checkout.entity.ShippingAddressDetails;
 import com.bharath.checkout.exception.CheckOutServiceException;
 import com.bharath.checkout.exception.CheckOutServiceExceptionMessages;
 import com.bharath.checkout.model.BillingAddressRequest;
+import com.bharath.checkout.model.BillingAddressViewResponse;
 import com.bharath.checkout.model.CartCheckoutRequest;
 import com.bharath.checkout.model.CheckOutResponse;
 import com.bharath.checkout.model.ShippingAddressRequest;
@@ -23,8 +24,8 @@ import com.bharath.checkout.repository.CheckOutRepository;
 import com.bharath.checkout.repository.ShippingAddressDetailsRepository;
 import com.bharath.checkout.service.interfaces.CheckoutService;
 
-@Service(value="checkOutService")
-@Transactional(rollbackForClassName = {"CheckOutServiceException","RuntimeException"})
+@Service(value = "checkOutService")
+@Transactional(rollbackForClassName = { "CheckOutServiceException", "RuntimeException" })
 public class CheckoutServiceImpl implements CheckoutService {
 
 	@Autowired
@@ -47,6 +48,10 @@ public class CheckoutServiceImpl implements CheckoutService {
 			throw new CheckOutServiceException(CheckOutServiceExceptionMessages.CART_PRODUCTS_IS_EMPTY);
 		List<CheckOutResponse> checkOutResponseList = new ArrayList<CheckOutResponse>();
 		for (CartCheckoutRequest cartCheckoutRequest : checkoutRequests) {
+			Optional<CheckoutDetails> optCheckOut = checkOutRepository
+					.findByCartProductId(cartCheckoutRequest.getCartProductId());
+			if (optCheckOut.isPresent())
+				throw new CheckOutServiceException(CheckOutServiceExceptionMessages.ALREADY_ADDRESS_SET);
 			if (cartCheckoutRequest.getBillingAddress().getBillingAddressId() == null)
 				billingAddressDetails = saveBillingAddress(cartCheckoutRequest.getBillingAddress(), userId);
 			else {
@@ -119,10 +124,11 @@ public class CheckoutServiceImpl implements CheckoutService {
 	}
 
 	@Override
-	public ShippingAddressViewResponse viewShippingAddress(Long shippingAddressId) throws CheckOutServiceException {
+	public ShippingAddressViewResponse viewShippingAddress(Long userId, Long shippingAddressId)
+			throws CheckOutServiceException {
 
 		Optional<ShippingAddressDetails> optionalShippingAddress = shippingAddressDetailsRepository
-				.findById(shippingAddressId);
+				.findByUserIdAndShippingAddressId(userId, shippingAddressId);
 
 		ShippingAddressDetails shippingAddressDetails = optionalShippingAddress.orElseThrow(
 				() -> new CheckOutServiceException(CheckOutServiceExceptionMessages.SHIPPING_ADDRESS_NOT_FOUND));
@@ -143,7 +149,39 @@ public class CheckoutServiceImpl implements CheckoutService {
 		shippingAddressViewResponse.setFirstName(shippingAddressDetails.getFirstName());
 		shippingAddressViewResponse.setLastName(shippingAddressDetails.getLastName());
 		shippingAddressViewResponse.setState(shippingAddressDetails.getState());
+
+		shippingAddressViewResponse.setEmail(shippingAddressDetails.getEmail());
 		return shippingAddressViewResponse;
+	}
+
+	@Override
+	public BillingAddressViewResponse viewBillingAddress(Long userId, Long billingAddressId)
+			throws CheckOutServiceException {
+		Optional<BillingAddressDetails> optionalShippingAddress = billingAddressDetailsRepository
+				.findByBillingAddressIdAndUserId(billingAddressId, userId);
+
+		BillingAddressDetails billingAddressDetails = optionalShippingAddress.orElseThrow(
+				() -> new CheckOutServiceException(CheckOutServiceExceptionMessages.BILLING_ADDRESS_NOT_FOUND));
+		return mapToBillingAddressViewResponse(billingAddressDetails);
+
+	}
+
+	private BillingAddressViewResponse mapToBillingAddressViewResponse(BillingAddressDetails billingAddressDetails) {
+		BillingAddressViewResponse billingAddressViewResponse = new BillingAddressViewResponse();
+		billingAddressViewResponse.setAddressLine1(billingAddressDetails.getAddressLine1());
+		billingAddressViewResponse.setAddressLine2(billingAddressDetails.getAddressLine2());
+		billingAddressViewResponse.setCity(billingAddressDetails.getCity());
+		billingAddressViewResponse.setCountry(billingAddressDetails.getCountry());
+		billingAddressViewResponse.setPostalCode(billingAddressDetails.getPostalCode());
+		billingAddressViewResponse.setPhoneNumber(billingAddressDetails.getPhoneNumber());
+		billingAddressViewResponse.setBillingAddressId(billingAddressDetails.getBillingAddressId());
+		billingAddressViewResponse.setFirstName(billingAddressDetails.getFirstName());
+		billingAddressViewResponse.setLastName(billingAddressDetails.getLastName());
+		billingAddressViewResponse.setState(billingAddressDetails.getState());
+		billingAddressViewResponse.setEmail(billingAddressDetails.getEmail());
+		
+		return billingAddressViewResponse;
+
 	}
 
 }
