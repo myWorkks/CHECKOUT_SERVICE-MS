@@ -3,6 +3,7 @@ package com.bharath.checkout.service.classes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -102,8 +103,10 @@ public class CheckoutServiceImpl implements CheckoutService {
 		shippingAddressDetails.setUserId(userId); // Assuming userId is passed separately
 		shippingAddressDetails.setFirstName(shippingAddress.getFirstName());
 		shippingAddressDetails.setLastName(shippingAddress.getLastName());
-
-		return shippingAddressDetailsRepository.save(shippingAddressDetails);
+		shippingAddressDetails.setIsDefault(shippingAddress.getIsDefault()==null?false:shippingAddress.getIsDefault());
+		shippingAddressDetails.setAddressType(shippingAddress.getAddressType());
+		// return shippingAddressDetailsRepository.save(shippingAddressDetails);
+		return shippingAddressDetails;
 	}
 
 	private BillingAddressDetails saveBillingAddress(BillingAddressRequest billingAddressRequest, Long userId) {
@@ -119,7 +122,10 @@ public class CheckoutServiceImpl implements CheckoutService {
 		billingAddressDetails.setUserId(userId);
 		billingAddressDetails.setFirstName(billingAddressRequest.getFirstName());
 		billingAddressDetails.setLastName(billingAddressRequest.getLastName());
-		return billingAddressDetailsRepository.save(billingAddressDetails);
+		billingAddressDetails.setIsDefault(billingAddressRequest.getIsDefault()==null?false:billingAddressRequest.getIsDefault());
+		billingAddressDetails.setAddressType(billingAddressRequest.getAddressType());
+		// return billingAddressDetailsRepository.save(billingAddressDetails);
+		return billingAddressDetails;
 
 	}
 
@@ -149,8 +155,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 		shippingAddressViewResponse.setFirstName(shippingAddressDetails.getFirstName());
 		shippingAddressViewResponse.setLastName(shippingAddressDetails.getLastName());
 		shippingAddressViewResponse.setState(shippingAddressDetails.getState());
-
+		shippingAddressViewResponse.setIsDefault(shippingAddressDetails.getIsDefault());
 		shippingAddressViewResponse.setEmail(shippingAddressDetails.getEmail());
+		shippingAddressViewResponse.setAddressType(shippingAddressDetails.getAddressType());
 		return shippingAddressViewResponse;
 	}
 
@@ -179,9 +186,79 @@ public class CheckoutServiceImpl implements CheckoutService {
 		billingAddressViewResponse.setLastName(billingAddressDetails.getLastName());
 		billingAddressViewResponse.setState(billingAddressDetails.getState());
 		billingAddressViewResponse.setEmail(billingAddressDetails.getEmail());
-		
+		billingAddressViewResponse.setIsDefault(billingAddressDetails.getIsDefault());
+		billingAddressViewResponse.setAddressType(billingAddressDetails.getAddressType());
 		return billingAddressViewResponse;
 
 	}
+
+	@Override
+	public List<ShippingAddressViewResponse> viewAllShippingAddress(Long userId) throws CheckOutServiceException {
+		List<ShippingAddressDetails> shippingAddressDetailsList = shippingAddressDetailsRepository.findByUserId(userId);
+		if (shippingAddressDetailsList != null && !shippingAddressDetailsList.isEmpty()) {
+			return shippingAddressDetailsList.stream()
+					.map(shippingAddress -> mapToShippingAddressViewResponse(shippingAddress))
+					.collect(Collectors.toList());
+		}
+
+		throw new CheckOutServiceException(CheckOutServiceExceptionMessages.NO_SHIPPING_ADDRESS_ADDED);
+	}
+
+	@Override
+	public List<BillingAddressViewResponse> viewAllBillingAddress(Long userId) throws CheckOutServiceException {
+		List<BillingAddressDetails> billingAddressDetailsList = billingAddressDetailsRepository.findByUserId(userId);
+		if (billingAddressDetailsList != null && !billingAddressDetailsList.isEmpty()) {
+			return billingAddressDetailsList.stream()
+					.map(billingAddress -> mapToBillingAddressViewResponse(billingAddress))
+					.collect(Collectors.toList());
+		}
+
+		throw new CheckOutServiceException(CheckOutServiceExceptionMessages.NO_BILLING_ADDRESS_ADDED);
+	}
+
+	@Override
+	public List<BillingAddressViewResponse> addBillingAddress(BillingAddressRequest billingAddressRequest, Long userId) throws CheckOutServiceException {
+
+		BillingAddressDetails billingAddressDetails = saveBillingAddress(billingAddressRequest, userId);
+
+		if (billingAddressRequest.getIsDefault()==null?false:billingAddressRequest.getIsDefault()) {
+			List<BillingAddressDetails> billingAddressDetailsToBeSaved = new ArrayList<BillingAddressDetails>();
+			billingAddressDetailsToBeSaved.add(billingAddressDetails);
+			Optional<BillingAddressDetails> optBillingAddressDetails = billingAddressDetailsRepository
+					.findByIsDefaultAndUserId(true,userId);
+			if (optBillingAddressDetails.isPresent()) {
+				BillingAddressDetails billAddressDetails = optBillingAddressDetails.get();
+				billAddressDetails.setIsDefault(false);
+				billingAddressDetailsToBeSaved.add(billAddressDetails);
+			}
+			billingAddressDetailsRepository.saveAll(billingAddressDetailsToBeSaved);
+		} else {
+			billingAddressDetailsRepository.save(billingAddressDetails);
+		}
+		return viewAllBillingAddress(userId);
+	}
+
+	@Override
+	public List<ShippingAddressViewResponse> addShippingAddress(ShippingAddressRequest shippingAddressRequest,
+	        Long userId) throws CheckOutServiceException {
+	    ShippingAddressDetails shippingAddressDetails = saveShippingAddress(shippingAddressRequest, userId);
+
+	    if (shippingAddressRequest.getIsDefault()==null?false:shippingAddressRequest.getIsDefault()) {
+	        List<ShippingAddressDetails> shippingAddressDetailsToBeSaved = new ArrayList<ShippingAddressDetails>();
+	        shippingAddressDetailsToBeSaved.add(shippingAddressDetails);
+	        Optional<ShippingAddressDetails> optShippingAddressDetails = shippingAddressDetailsRepository
+	                .findByIsDefaultAndUserId(true,userId);
+	        if (optShippingAddressDetails.isPresent()) {
+	            ShippingAddressDetails shipAddressDetails = optShippingAddressDetails.get();
+	            shipAddressDetails.setIsDefault(false);
+	            shippingAddressDetailsToBeSaved.add(shipAddressDetails);
+	        }
+	        shippingAddressDetailsRepository.saveAll(shippingAddressDetailsToBeSaved);
+	    } else {
+	        shippingAddressDetailsRepository.save(shippingAddressDetails);
+	    }
+	    return viewAllShippingAddress(userId);
+	}
+
 
 }

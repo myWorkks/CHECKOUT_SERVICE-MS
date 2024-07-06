@@ -1,5 +1,7 @@
 package com.bharath.checkout.model;
 
+import com.bharath.checkout.entity.AddressType;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,4 +29,8 @@ public class BillingAddressViewResponse {
 	private String phoneNumber;
 
 	private String email;
+
+	private Boolean isDefault;
+	
+	private AddressType addressType;
 }

@@ -17,7 +17,7 @@ public class CheckOutServiceExceptionHandler {
 		errorInformation.setErrorMessage(exception.getMessage());
 		errorInformation.setOccuredAt(LocalDateTime.now());
 		errorInformation.setErrorCode(HttpStatus.BAD_REQUEST.value());
-		return new ResponseEntity<ErrorInformation>(errorInformation, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<ErrorInformation>(errorInformation, HttpStatus.OK);
 	}
 
 }

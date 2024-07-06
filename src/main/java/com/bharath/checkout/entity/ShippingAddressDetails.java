@@ -1,6 +1,8 @@
 package com.bharath.checkout.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,4 +40,8 @@ public class ShippingAddressDetails {
 	private String email;
 
 	private Long userId;
+
+	private Boolean isDefault;
+	@Enumerated(EnumType.STRING)
+	private AddressType addressType;
 }
