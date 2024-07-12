@@ -20,7 +20,9 @@ import com.bharath.checkout.model.CartCheckoutRequest;
 import com.bharath.checkout.model.CheckOutResponse;
 import com.bharath.checkout.model.ShippingAddressRequest;
 import com.bharath.checkout.model.ShippingAddressViewResponse;
+import com.bharath.checkout.model.ViewCheckOutResponse;
 import com.bharath.checkout.service.interfaces.CheckoutService;
+import com.bharath.checkout.utility.CheckoutServiceConstants;
 
 @RestController
 @CrossOrigin
@@ -30,38 +32,67 @@ public class CheckoutServiceController {
 	private CheckoutService checkoutService;
 
 	@PostMapping(value = "checkout")
-	public ResponseEntity<List<CheckOutResponse>> cartCheckOut(@RequestBody List<CartCheckoutRequest> checkoutRequest,
-			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException{
-		
+	public ResponseEntity<String> cartCheckOut(@RequestBody CartCheckoutRequest checkoutRequest,
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
 
-		return new ResponseEntity<List<CheckOutResponse>>(checkoutService.cartCheckout(checkoutRequest, userId), HttpStatus.CREATED);
+		checkoutService.cartCheckout(checkoutRequest, userId);
+		return new ResponseEntity<String>(CheckoutServiceConstants.CHECK_OUT_SUCCESS, HttpStatus.CREATED);
 	}
-	
-	@GetMapping(value="/view-shipping-address")
-	public ResponseEntity<ShippingAddressViewResponse> viewShippingAddress(@RequestParam(required = true,name="shippingAddressId") Long shippingAddressId,@RequestParam(name="userId",required=true) Long userId) throws CheckOutServiceException {
-		return new ResponseEntity<ShippingAddressViewResponse>(checkoutService.viewShippingAddress(userId,shippingAddressId),HttpStatus.OK);
+
+	@GetMapping(value = "/view-shipping-address")
+	public ResponseEntity<List<ShippingAddressViewResponse>> viewShippingAddress(
+			@RequestParam(required = true, name = "shippingAddressIds") List<Long> shippingAddressIds,
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+		return new ResponseEntity<List<ShippingAddressViewResponse>>(
+				checkoutService.viewShippingAddress(userId, shippingAddressIds), HttpStatus.OK);
 	}
-	
-	@GetMapping(value="/view-billing-address")
-	public ResponseEntity<BillingAddressViewResponse> viewBillingAddress(@RequestParam(required = true,name="billingAddressId") Long billingAddressId,@RequestParam(name="userId",required=true) Long userId) throws CheckOutServiceException {
-		return new ResponseEntity<BillingAddressViewResponse>(checkoutService.viewBillingAddress(userId,billingAddressId),HttpStatus.OK);
+
+	@GetMapping(value = "/view-billing-address")
+	public ResponseEntity<BillingAddressViewResponse> viewBillingAddress(
+			@RequestParam(required = true, name = "billingAddressId") Long billingAddressId,
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+		return new ResponseEntity<BillingAddressViewResponse>(
+				checkoutService.viewBillingAddress(userId, billingAddressId), HttpStatus.OK);
 	}
-	@GetMapping(value="/view-all-shipping-address")
-	public ResponseEntity<List<ShippingAddressViewResponse>> viewAllShippingAddresses(@RequestParam(name="userId",required=true) Long userId) throws CheckOutServiceException {
-		return new ResponseEntity<List<ShippingAddressViewResponse>>(checkoutService.viewAllShippingAddress(userId),HttpStatus.OK);
+
+	@GetMapping(value = "/view-all-shipping-address")
+	public ResponseEntity<List<ShippingAddressViewResponse>> viewAllShippingAddresses(
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+		return new ResponseEntity<List<ShippingAddressViewResponse>>(checkoutService.viewAllShippingAddress(userId),
+				HttpStatus.OK);
 	}
-	@GetMapping(value="/view-all-billing-address")
-	public ResponseEntity<List<BillingAddressViewResponse>> viewAllBillingAddresses(@RequestParam(name="userId",required=true) Long userId) throws CheckOutServiceException {
-		
-		return new ResponseEntity<List<BillingAddressViewResponse>>(checkoutService.viewAllBillingAddress(userId),HttpStatus.OK);
+
+	@GetMapping(value = "/view-all-billing-address")
+	public ResponseEntity<List<BillingAddressViewResponse>> viewAllBillingAddresses(
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+
+		return new ResponseEntity<List<BillingAddressViewResponse>>(checkoutService.viewAllBillingAddress(userId),
+				HttpStatus.OK);
 	}
-	@PostMapping(value="/add-billing-address")
-	public ResponseEntity<List<BillingAddressViewResponse>> addBillingAddress(@RequestBody BillingAddressRequest billingAddressRequest,@RequestParam(name = "userId",required = true) Long userId) throws CheckOutServiceException{
-		return new ResponseEntity<List<BillingAddressViewResponse>>(checkoutService.addBillingAddress(billingAddressRequest,userId),HttpStatus.CREATED);
+
+	@PostMapping(value = "/add-billing-address")
+	public ResponseEntity<List<BillingAddressViewResponse>> addBillingAddress(
+			@RequestBody BillingAddressRequest billingAddressRequest,
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+		return new ResponseEntity<List<BillingAddressViewResponse>>(
+				checkoutService.addBillingAddress(billingAddressRequest, userId), HttpStatus.CREATED);
 	}
-	@PostMapping(value="/add-shipping-address")
-	public ResponseEntity<List<ShippingAddressViewResponse>> addShippingAddress(@RequestBody ShippingAddressRequest shippingAddressRequest,@RequestParam(name = "userId",required = true) Long userId) throws CheckOutServiceException{
-		return new ResponseEntity<List<ShippingAddressViewResponse>>(checkoutService.addShippingAddress(shippingAddressRequest,userId),HttpStatus.CREATED);
+
+	@PostMapping(value = "/add-shipping-address")
+	public ResponseEntity<List<ShippingAddressViewResponse>> addShippingAddress(
+			@RequestBody ShippingAddressRequest shippingAddressRequest,
+			@RequestParam(name = "userId", required = true) Long userId) throws CheckOutServiceException {
+		return new ResponseEntity<List<ShippingAddressViewResponse>>(
+				checkoutService.addShippingAddress(shippingAddressRequest, userId), HttpStatus.CREATED);
+	}
+
+	@GetMapping("/view-checkout")
+	public ResponseEntity<List<ViewCheckOutResponse>> viewCheckOutWithCartProductIds(
+			@RequestParam(required = true, name = "cartProductIds") List<Long> cartProductIds)
+			throws CheckOutServiceException {
+		return new ResponseEntity<List<ViewCheckOutResponse>>(
+				checkoutService.viewCheckOutWithCartProductIds(cartProductIds), HttpStatus.OK);
+
 	}
 
 }

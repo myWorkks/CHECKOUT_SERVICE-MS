@@ -10,7 +10,7 @@ import lombok.Setter;
 public class CartCheckoutRequest {
 
 	
-	private Long cartProductId;
-	private BillingAddressRequest billingAddress;
-	private ShippingAddressRequest shippingAddress;
+	
+	private Long billingAddressId;
+	private Long shippingAddressId;
 }
