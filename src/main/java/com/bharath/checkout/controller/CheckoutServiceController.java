@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -95,4 +96,8 @@ public class CheckoutServiceController {
 
 	}
 
+	@DeleteMapping(value="delete-billing-address")
+	public ResponseEntity<String> deleteBillingAddress(@RequestParam(name="userId")Long userId,@RequestParam(name="billingAddressId")Long billingAddressId) throws CheckOutServiceException{
+		return new ResponseEntity<String>(CheckoutServiceConstants.BILLING_ADDRESS_DELETE_SUCCESS,HttpStatus.OK);
+	}
 }
